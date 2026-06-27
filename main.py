@@ -36,7 +36,6 @@ def generate_shields_response(score: str):
         fallback_svg = f'<svg xmlns="http://www.w3.org/2000/svg" width="120" height="20"><text x="5" y="14" fill="red">Error Badge</text></svg>'
         return Response(content=fallback_svg, media_type="image/svg+xml")
 
-
 def scraping_score(username: str) -> str:
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
@@ -62,7 +61,6 @@ def scraping_score(username: str) -> str:
         except Exception:
             browser.close()
             return "Error"
-
 
 @app.get("/badge/{username}")
 def get_badge(username: str):
