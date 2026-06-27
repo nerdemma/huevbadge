@@ -10,6 +10,8 @@ Así es como se verá tu badge oficial utilizando la paleta de colores de la pla
 
 [![Huevsite Score](https://img.shields.io/badge/Score-95-111111?style=for-the-badge&labelColor=ccff00&color=111111&logo=visual-studio-code&logoColor=black)](https://huevsite.io)
 
+[![Huevsite Score](https://huevbadge.onrender.com/badge/nerdemma?v=99)](https://huevsite.io/nerdemma)
+
 ---
 
 ## 🚀 Características
