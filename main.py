@@ -12,6 +12,19 @@ CACHE_MEMORIA = {}
 CACHE_EXPIRACION_SEGUNDOS = 300  # 5 minutos
 
 
+def build_svg_response(content: bytes) -> Response:
+    headers = {
+        "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0"
+    }
+    return Response(
+        content=content,
+        media_type="image/svg+xml",
+        headers=headers,
+    )
+
+
 def generate_shields_response(score: str):
     label_color = "ccff00"
     color_fondo = "111111"
@@ -68,15 +81,7 @@ def get_badge(username: str):
         datos_cache = CACHE_MEMORIA[username_lower]
         if ahora - datos_cache["timestamp"] < CACHE_EXPIRACION_SEGUNDOS:
             print(f"¡Caché Hit! Entregando badge instantáneo para {username_lower}")
-            return Response(
-                content=datos_cache["svg"],
-                media_type="image/svg+xml",
-                headers={
-                    "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
-                    "Pragma": "no-cache",
-                    "Expires": "0"
-                }
-            )
+            return build_svg_response(datos_cache["svg"])
             
     # Si no está en caché o ya expiró, hacemos el proceso lento una sola vez
     score = scraping_score(username_lower)
@@ -88,12 +93,4 @@ def get_badge(username: str):
         "timestamp": ahora
     }
     
-    return Response(
-        content=svg_content, 
-        media_type="image/svg+xml", 
-        headers={
-            "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
-            "Pragma": "no-cache",
-            "Expires": "0"
-        }
-    )
+    return build_svg_response(svg_content)
