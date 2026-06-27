@@ -2,12 +2,17 @@ from fastapi import FastAPI, Response
 from playwright.sync_api import sync_playwright
 import re
 import requests
+import time
 
 app = FastAPI(title="Huevsite Badge Generator")
 
+# Diccionario en memoria para guardar los resultados y evitar la lentitud de Playwright
+# Estructura: { "username": {"svg": b"...", "timestamp": 12345678} }
+CACHE_MEMORIA = {}
+CACHE_EXPIRACION_SEGUNDOS = 300  # 5 minutos
+
 
 def generate_shields_response(score: str):
-    # Forzar siempre tus colores oficiales verde lima y negro
     label_color = "ccff00"
     color_fondo = "111111"
     
@@ -15,30 +20,14 @@ def generate_shields_response(score: str):
         label_color = "lightgrey"
         color_fondo = "grey"
         
-    shields_url = f"https://img.shields.io/badge/🥚Score-{score}-{color_fondo}?style=for-the-badge&labelColor={label_color}&color={color_fondo}"
+    shields_url = f"https://img.shields.io/badge/Status-{score}-{color_fondo}?style=for-the-badge&labelColor={label_color}&color={color_fondo}"
     
     try:
         badge_response = requests.get(shields_url)
-        
-        # Estas cabeceras obligan a GitHub a mostrar la imagen y no el texto plano
-        headers = {
-            "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
-            "Pragma": "no-cache",
-            "Expires": "0"
-        }
-        
-        return Response(
-    content=badge_response.content,  # Aquí va el código SVG puro que nos mostraste
-    media_type="image/svg+xml",       # <--- ESTO ES LO CRUCIAL PARA GITHUB
-    headers={
-        "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
-        "Pragma": "no-cache",
-        "Expires": "0"
-    }
-)
+        return badge_response.content
     except Exception:
-        fallback_svg = f'<svg xmlns="http://www.w3.org/2000/svg" width="120" height="20"><text x="5" y="14" fill="red">Error Badge</text></svg>'
-        return Response(content=fallback_svg, media_type="image/svg+xml")
+        return f'<svg xmlns="http://www.w3.org/2000/svg" width="120" height="20"><text x="5" y="14" fill="red">Error Badge</text></svg>'.encode('utf-8')
+
 
 def scraping_score(username: str) -> str:
     with sync_playwright() as p:
@@ -47,12 +36,10 @@ def scraping_score(username: str) -> str:
         page = context.new_page()
         
         try:
-            print(f"Conectando a huevsite.io/{username}...")
+            print(f"Scraping en tiempo real para: {username}...")
             page.goto(f"https://huevsite.io/{username}", wait_until="networkidle")
-            
-            print("Esperando a que termine la pantalla de carga...")
-            page.wait_for_selector("text=building your huevsite…", state="detached", timeout=15000)
-            page.wait_for_timeout(1000)
+            page.wait_for_selector("text=building your huevsite…", state="detached", timeout=10000)
+            page.wait_for_timeout(500)
             body_text = page.locator("body").inner_text()
             browser.close()
     
@@ -62,14 +49,51 @@ def scraping_score(username: str) -> str:
 
             return match.group(1) if match else "N/A"
             
-        except Exception:
-            browser.close()
+        except Exception as e:
+            print(f"Error en Playwright: {e}")
+            try:
+                browser.close()
+            except:
+                pass
             return "Error"
+
 
 @app.get("/badge/{username}")
 def get_badge(username: str):
-    # 1. Obtener el puntaje real
-    score = scraping_score(username)
+    username_lower = username.lower()
+    ahora = time.time()
     
-    # 2. RETORNAR la respuesta usando la función que tiene las cabeceras fijadas
-    return generate_shields_response(score)
+    # Si el badge está en caché y no ha expirado, lo devolvemos al instante (GitHub AMA ESTO)
+    if username_lower in CACHE_MEMORIA:
+        datos_cache = CACHE_MEMORIA[username_lower]
+        if ahora - datos_cache["timestamp"] < CACHE_EXPIRACION_SEGUNDOS:
+            print(f"¡Caché Hit! Entregando badge instantáneo para {username_lower}")
+            return Response(
+                content=datos_cache["svg"],
+                media_type="image/svg+xml",
+                headers={
+                    "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+                    "Pragma": "no-cache",
+                    "Expires": "0"
+                }
+            )
+            
+    # Si no está en caché o ya expiró, hacemos el proceso lento una sola vez
+    score = scraping_score(username_lower)
+    svg_content = generate_shields_response(score)
+    
+    # Guardamos en la caché de memoria
+    CACHE_MEMORIA[username_lower] = {
+        "svg": svg_content,
+        "timestamp": ahora
+    }
+    
+    return Response(
+        content=svg_content, 
+        media_type="image/svg+xml", 
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+    )
