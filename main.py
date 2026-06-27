@@ -28,10 +28,14 @@ def generate_shields_response(score: str):
         }
         
         return Response(
-            content=badge_response.content, 
-            media_type="image/svg+xml", 
-            headers=headers 
-        )
+    content=badge_response.content,  # Aquí va el código SVG puro que nos mostraste
+    media_type="image/svg+xml",       # <--- ESTO ES LO CRUCIAL PARA GITHUB
+    headers={
+        "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0"
+    }
+)
     except Exception:
         fallback_svg = f'<svg xmlns="http://www.w3.org/2000/svg" width="120" height="20"><text x="5" y="14" fill="red">Error Badge</text></svg>'
         return Response(content=fallback_svg, media_type="image/svg+xml")
