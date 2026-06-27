@@ -5,6 +5,30 @@ import requests
 
 app = FastAPI(title="Huevsite Badge Generator");
 
+
+def generate_shields_response(score: str):
+    color = "orange"
+    if score in ["N/A", "Error"]: color = "lightgrey"
+    elif score.isdigit() and int(score) > 80: color = "brightgreen"
+    
+    shields_url = f"https://img.shields.io/badge/Score-{score}-{color}?style=for-the-badge&labelColor=ccff00&color=111111"
+    badge_response = requests.get(shields_url)
+    
+
+    headers = {
+        "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0"
+    }
+    
+    return Response(
+        content=badge_response.content, 
+        media_type="image/svg+xml", 
+        headers=headers 
+    )
+
+
+
 def scraping_score(username:str)-> str:
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
