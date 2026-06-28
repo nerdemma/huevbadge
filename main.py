@@ -33,7 +33,7 @@ def generate_shields_response(score: str):
         label_color = "lightgrey"
         color_fondo = "grey"
         
-    shields_url = f"https://img.shields.io/badge/HuevScore-{score}-{color_fondo}?style=for-the-badge&labelColor={label_color}&color={color_fondo}"
+    shields_url = f"https://img.shields.io/badge/BuilderScore-{score}-{color_fondo}?style=for-the-badge&labelColor={label_color}&color={color_fondo}"
     
     try:
         badge_response = requests.get(shields_url)
