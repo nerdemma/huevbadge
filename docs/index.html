@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>huevbadge — Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --lime: #ccff00;
+            --dark-bg: #0e0e0e;
+            --card-bg: #161616;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --border: #262626;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 520px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            margin-bottom: 6px;
+        }
+
+        .header h1 span {
+            color: var(--lime);
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper .prefix {
+            position: absolute;
+            left: 14px;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            user-select: none;
+        }
+
+        .form-control {
+            width: 100%;
+            background-color: var(--dark-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 14px 14px 115px;
+            color: var(--text-main);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--lime);
+            box-shadow: 0 0 0 3px rgba(204, 255, 0, 0.15);
+        }
+
+        .btn-generate {
+            width: 100%;
+            background-color: var(--lime);
+            color: #000000;
+            border: none;
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.1s ease, filter 0.2s ease;
+        }
+
+        .btn-generate:hover {
+            filter: brightness(1.1);
+        }
+
+        .btn-generate:active {
+            transform: scale(0.98);
+        }
+
+        .preview-box {
+            display: none;
+            margin-top: 28px;
+            border-top: 1px solid var(--border);
+            padding-top: 24px;
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .preview-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .badge-display {
+            display: flex;
+            justify-content: center;
+            background-color: var(--dark-bg);
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .output-group {
+            margin-bottom: 16px;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .output-header span {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .btn-copy {
+            background: none;
+            border: none;
+            color: var(--lime);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .btn-copy:hover {
+            background-color: rgba(204, 255, 0, 0.1);
+        }
+
+        .code-box {
+            width: 100%;
+            background-color: var(--dark-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            color: #d4d4d4;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            resize: none;
+            white-space: pre;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🥚 huev<span>badge</span></h1>
+        <p>Genera tu Builder Score dinámico para tu README</p>
+    </div>
+
+    <div class="form-group">
+        <label for="username">Tu usuario de Huevsite</label>
+        <div class="input-wrapper">
+            <span class="prefix">huevsite.io/</span>
+            <input type="text" id="username" class="form-control" placeholder="nerdemma" autocomplete="off">
+        </div>
+    </div>
+
+    <button class="btn-generate" onclick="generateBadge()">Generar Badge</button>
+
+    <div class="preview-box" id="previewBox">
+        <div class="preview-title">Resultado</div>
+        <div class="badge-display" id="badgeDisplay"></div>
+
+        <div class="output-group">
+            <div class="output-header">
+                <span>CÓDIGO MARKDOWN (README.md)</span>
+                <button class="btn-copy" onclick="copyCode('markdownCode', this)">Copiar</button>
+            </div>
+            <div id="markdownCode" class="code-box"></div>
+        </div>
+
+        <div class="output-group">
+            <div class="output-header">
+                <span>CÓDIGO HTML</span>
+                <button class="btn-copy" onclick="copyCode('htmlCode', this)">Copiar</button>
+            </div>
+            <div id="htmlCode" class="code-box"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Configura aquí la URL base de tu app en Render
+    const BASE_URL = "https://huevbadge.onrender.com";
+
+    function generateBadge() {
+        const username = document.getElementById('username').value.trim().toLowerCase();
+        if (!username) return;
+
+        const badgeUrl = `${BASE_URL}/badge/${username}?v=${Math.floor(Math.random() * 10000)}`;
+        const targetUrl = `https://huevsite.io/${username}`;
+
+        // Estructuras de los códigos a copiar
+        const markdown = `[![Huevsite Score](${badgeUrl})](${targetUrl})`;
+        const html = `<a href="${targetUrl}">\n  <img src="${badgeUrl}" alt="Huevsite Score" />\n</a>`;
+
+        // Renderizar vista previa visual e inyectar textos
+        document.getElementById('badgeDisplay').innerHTML = `<a href="${targetUrl}" target="_blank"><img src="${badgeUrl}" alt="Preview" /></a>`;
+        document.getElementById('markdownCode').innerText = markdown;
+        document.getElementById('htmlCode').innerText = html;
+
+        // Mostrar el contenedor de resultados
+        document.getElementById('previewBox').style.display = 'block';
+    }
+
+    function copyCode(elementId, btn) {
+        const text = document.getElementById(elementId).innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            const originalText = btn.innerText;
+            btn.innerText = "¡Copiado!";
+            btn.style.color = "#ffffff";
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.color = "var(--lime)";
+            }, 2000);
+        });
+    }
+</script>
+
+</body>
+</html>
